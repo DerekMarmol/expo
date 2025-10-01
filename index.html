@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPC: Pasaje de Mensajes y Barreras</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+        
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .slide {
+            width: 90%;
+            max-width: 1200px;
+            height: 85vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 60px;
+            display: none;
+            flex-direction: column;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        .slide.active {
+            display: flex;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .slide-header {
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .slide-title {
+            font-size: 48px;
+            color: #2d3748;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .slide-subtitle {
+            font-size: 24px;
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .slide-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 20px;
+        }
+        
+        .slide-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .slide-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .slide-content::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+        
+        h2 {
+            color: #667eea;
+            font-size: 32px;
+            margin: 25px 0 15px 0;
+        }
+        
+        h3 {
+            color: #764ba2;
+            font-size: 24px;
+            margin: 20px 0 10px 0;
+        }
+        
+        p, li {
+            font-size: 20px;
+            line-height: 1.6;
+            color: #4a5568;
+            margin: 10px 0;
+        }
+        
+        ul {
+            margin-left: 30px;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            margin: 20px 0;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+        
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .box {
+            background: #f7fafc;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .comparison-item {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .comparison-item h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+        
+        .navigation {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .nav-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .nav-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .slide-number {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            color: #a0aec0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .presenter-tag {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .diagram {
+            background: white;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: monospace;
+            font-size: 16px;
+            line-height: 2;
+        }
+        
+        .arrow {
+            color: #667eea;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            text-align: left;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            font-size: 18px;
+        }
+        
+        .intro-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+        }
+        
+        .intro-content .slide-title {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .intro-content .slide-subtitle {
+            font-size: 32px;
+        }
+        
+        .team-list {
+            margin-top: 40px;
+            font-size: 24px;
+            color: #4a5568;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        <!-- Slide 1: Portada -->
+        <div class="slide active">
+            <div class="intro-content">
+                <div class="slide-title">Comunicación Entre Procesos</div>
+                <div class="slide-subtitle">Pasaje de Mensajes y Barreras</div>
+                <div class="team-list">
+                    <p><strong>Expositores:</strong></p>
+                    <p>Derek Marmol | Daniel Ortiz</p>
+                    <p>Ergil Cardenas | Diego Contreras</p>
+                </div>
+            </div>
+            <div class="slide-number">1 / 15</div>
+        </div>
+
+        <!-- Slide 2: Índice -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Índice</div>
+            </div>
+            <div class="slide-content">
+                <h2>Contenido de la Presentación</h2>
+                <div style="font-size: 24px; line-height: 2.5;">
+                    <p><strong>Parte 1: Pasaje de Mensajes (Persona 1 y 2)</strong></p>
+                    <ul>
+                        <li>Introducción y conceptos fundamentales</li>
+                        <li>Tipos de comunicación (directa/indirecta)</li>
+                        <li>Sincronización: Bloqueante vs No bloqueante</li>
+                        <li>Ejemplos prácticos y código</li>
+                    </ul>
+                    <br>
+                    <p><strong>Parte 2: Barreras (Persona 3 y 4)</strong></p>
+                    <ul>
+                        <li>Concepto y propósito de las barreras</li>
+                        <li>Funcionamiento y tipos</li>
+                        <li>Implementación y ejemplos</li>
+                        <li>Comparación con otros mecanismos</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-number">2 / 15</div>
+        </div>
+
+        <!-- PARTE 1: PASAJE DE MENSAJES (PERSONA 1) -->
+        
+        <!-- Slide 3 -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Derek Marmol</div>
+            <div class="slide-header">
+                <div class="slide-title">Pasaje de Mensajes</div>
+                <div class="slide-subtitle">Introducción y Conceptos Fundamentales</div>
+            </div>
+            <div class="slide-content">
+                <h2>¿Qué es el Pasaje de Mensajes?</h2>
+                <p>El <span class="highlight">pasaje de mensajes</span> es un mecanismo de comunicación entre procesos (IPC) que permite el intercambio de información sin necesidad de memoria compartida.</p>
+                
+                <div class="box">
+                    <h3>Características Principales:</h3>
+                    <ul>
+                        <li><strong>No requiere memoria compartida:</strong> Ideal para sistemas distribuidos</li>
+                        <li><strong>Comunicación explícita:</strong> Los procesos envían y reciben mensajes mediante primitivas</li>
+                        <li><strong>Sincronización implícita:</strong> El mecanismo puede incluir sincronización</li>
+                        <li><strong>Escalabilidad:</strong> Funciona bien en múltiples computadoras</li>
+                    </ul>
+                </div>
+
+                <h2>Primitivas Básicas</h2>
+                <div class="code-block">send(destino, &mensaje);    // Enviar mensaje
+receive(origen, &mensaje);   // Recibir mensaje</div>
+
+                <p><strong>Ventaja principal:</strong> Evita problemas de condiciones de carrera al no compartir memoria directamente.</p>
+            </div>
+            <div class="slide-number">3 / 15</div>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Derek Marmol</div>
+            <div class="slide-header">
+                <div class="slide-title">Tipos de Comunicación</div>
+                <div class="slide-subtitle">Direccionamiento Directo e Indirecto</div>
+            </div>
+            <div class="slide-content">
+                <h2>1. Comunicación Directa</h2>
+                <p>Los procesos se nombran explícitamente entre sí.</p>
+                <div class="code-block">// Proceso P1
+send(P2, mensaje);           // Enviar a P2 directamente
+
+// Proceso P2
+receive(P1, &mensaje);       // Recibir de P1 directamente</div>
+                
+                <div class="box">
+                    <p><strong>Características:</strong></p>
+                    <ul>
+                        <li>Vínculo automático entre procesos</li>
+                        <li>Comunicación uno a uno</li>
+                        <li>Ambos procesos deben conocerse</li>
+                    </ul>
+                </div>
+
+                <h2>2. Comunicación Indirecta (Buzones/Puertos)</h2>
+                <p>Los mensajes se envían y reciben a través de <span class="highlight">buzones</span> o <span class="highlight">puertos</span>.</p>
+                <div class="code-block">// Proceso P1
+send(MailboxA, mensaje);     // Enviar al buzón A
+
+// Proceso P2 o P3 pueden recibir
+receive(MailboxA, &mensaje); // Recibir del buzón A</div>
+
+                <div class="box">
+                    <p><strong>Ventajas:</strong></p>
+                    <ul>
+                        <li>Flexibilidad: múltiples procesos pueden usar el mismo buzón</li>
+                        <li>Desacoplamiento: los procesos no necesitan conocerse</li>
+                        <li>Comunicación uno a muchos o muchos a uno</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-number">4 / 15</div>
+        </div>
+
+        <!-- Slide 5 -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Derek Marmol</div>
+            <div class="slide-header">
+                <div class="slide-title">Diagrama de Comunicación</div>
+                <div class="slide-subtitle">Visual de Directa vs Indirecta</div>
+            </div>
+            <div class="slide-content">
+                <h2>Comunicación Directa</h2>
+                <div class="diagram">
+                    Proceso P1  <span class="arrow">→</span>  [mensaje]  <span class="arrow">→</span>  Proceso P2
+                    <br>
+                    (Conexión punto a punto)
+                </div>
+
+                <h2>Comunicación Indirecta</h2>
+                <div class="diagram">
+                    Proceso P1  <span class="arrow">→</span>  [Buzón A]  <span class="arrow">←</span>  Proceso P2
+                    <br>
+                    Proceso P3  <span class="arrow">→</span>  [Buzón A]  <span class="arrow">←</span>  Proceso P4
+                    <br>
+                    (Múltiples procesos pueden acceder al buzón)
+                </div>
+
+                <div class="box">
+                    <h3>Analogía del mundo real:</h3>
+                    <p><strong>Directa:</strong> Es como hacer una llamada telefónica directa a una persona específica.</p>
+                    <p><strong>Indirecta:</strong> Es como enviar un correo a una casilla postal que varias personas pueden revisar.</p>
+                </div>
+            </div>
+            <div class="slide-number">5 / 15</div>
+        </div>
+
+        <!-- PARTE 1: PASAJE DE MENSAJES (PERSONA 2) -->
+        
+        <!-- Slide 6 -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Daniel Ortiz</div>
+            <div class="slide-header">
+                <div class="slide-title">Sincronización en Pasaje de Mensajes</div>
+                <div class="slide-subtitle">Bloqueante vs No Bloqueante</div>
+            </div>
+            <div class="slide-content">
+                <h2>Tipos de Sincronización</h2>
+                
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <h4>🔒 Bloqueante (Sincrónico)</h4>
+                        <p><strong>Send bloqueante:</strong> El emisor se bloquea hasta que el receptor reciba el mensaje.</p>
+                        <p><strong>Receive bloqueante:</strong> El receptor se bloquea hasta que llegue un mensaje.</p>
+                        <div class="code-block" style="font-size: 14px;">send(destino, msg);
+// Se bloquea aquí
+// hasta que se reciba</div>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h4>🔓 No Bloqueante (Asincrónico)</h4>
+                        <p><strong>Send no bloqueante:</strong> El emisor continúa inmediatamente después de enviar.</p>
+                        <p><strong>Receive no bloqueante:</strong> Retorna inmediatamente con mensaje o NULL.</p>
+                        <div class="code-block" style="font-size: 14px;">send(destino, msg);
+// Continúa aquí
+// inmediatamente</div>
+                    </div>
+                </div>
+
+                <h2>Combinaciones Posibles</h2>
+                <table>
+                    <tr>
+                        <th>Send</th>
+                        <th>Receive</th>
+                        <th>Resultado</th>
+                    </tr>
+                    <tr>
+                        <td>Bloqueante</td>
+                        <td>Bloqueante</td>
+                        <td>Rendez-vous (encuentro sincronizado)</td>
+                    </tr>
+                    <tr>
+                        <td>No Bloqueante</td>
+                        <td>Bloqueante</td>
+                        <td>Más común en la práctica</td>
+                    </tr>
+                    <tr>
+                        <td>No Bloqueante</td>
+                        <td>No Bloqueante</td>
+                        <td>Totalmente asincrónico</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="slide-number">6 / 15</div>
+        </div>
+
+        <!-- Slide 7 -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Daniel Ortiz</div>
+            <div class="slide-header">
+                <div class="slide-title">Buffering de Mensajes</div>
+                <div class="slide-subtitle">¿Dónde se almacenan los mensajes?</div>
+            </div>
+            <div class="slide-content">
+                <h2>Estrategias de Almacenamiento</h2>
+                
+                <h3>1. Capacidad Cero (Sin Buffer)</h3>
+                <div class="box">
+                    <p>No hay cola de espera. El emisor <strong>debe esperar</strong> al receptor.</p>
+                    <p><strong>Uso:</strong> Sincronización estricta (rendez-vous)</p>
+                </div>
+
+                <h3>2. Capacidad Limitada</h3>
+                <div class="box">
+                    <p>Cola de tamaño finito (n mensajes). Si la cola está llena, el emisor se bloquea.</p>
+                    <div class="code-block">// Buffer de 10 mensajes
+Mailbox buffer[10];
+if (buffer_full()) {
+    wait(); // Emisor espera
+}</div>
+                </div>
+
+                <h3>3. Capacidad Ilimitada</h3>
+                <div class="box">
+                    <p>Cola de tamaño infinito (teórico). El emisor <strong>nunca espera</strong>.</p>
+                    <p><strong>Limitación:</strong> Recursos finitos en sistemas reales</p>
+                </div>
+
+                <div class="diagram">
+                    Emisor → [Buffer: ▢ ▢ ▢] → Receptor
+                    <br>
+                    (Los mensajes esperan si el receptor está ocupado)
+                </div>
+            </div>
+            <div class="slide-number">7 / 15</div>
+        </div>
+
+        <!-- Slide 8 -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Daniel Ortiz</div>
+            <div class="slide-header">
+                <div class="slide-title">Ejemplo Práctico: Productor-Consumidor</div>
+                <div class="slide-subtitle">Implementación con Pasaje de Mensajes</div>
+            </div>
+            <div class="slide-content">
+                <h2>Problema Clásico Resuelto con Mensajes</h2>
+                
+                <div class="code-block">#define N 100  // Tamaño del buffer
+
+void producer(void) {
+    int item;
+    message m;
+    
+    while (TRUE) {
+        item = produce_item();
+        receive(consumer, &m);      // Esperar mensaje vacío
+        build_message(&m, item);
+        send(consumer, &m);         // Enviar mensaje lleno
+    }
+}
+
+void consumer(void) {
+    int item;
+    message m;
+    
+    for (int i = 0; i < N; i++) {
+        send(producer, &m);         // Enviar N mensajes vacíos
+    }
+    
+    while (TRUE) {
+        receive(producer, &m);      // Recibir mensaje lleno
+        item = extract_item(&m);
+        send(producer, &m);         // Devolver mensaje vacío
+        consume_item(item);
+    }
+}</div>
+
+                <div class="box">
+                    <h3>Ventajas de esta solución:</h3>
+                    <ul>
+                        <li>No requiere memoria compartida</li>
+                        <li>Sincronización automática</li>
+                        <li>Sin condiciones de carrera</li>
+                        <li>Código más simple y claro</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-number">8 / 15</div>
+        </div>
+
+        <!-- Slide 9: Transición -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Transición</div>
+                <div class="slide-subtitle">De Pasaje de Mensajes a Barreras</div>
+            </div>
+            <div class="slide-content">
+                <div style="display: flex; flex-direction: column; justify-content: center; height: 100%; text-align: center;">
+                    <h2 style="font-size: 48px; color: #667eea; margin-bottom: 40px;">Hemos visto: Pasaje de Mensajes</h2>
+                    <p style="font-size: 28px; margin: 20px 0;">✓ Comunicación entre procesos sin memoria compartida</p>
+                    <p style="font-size: 28px; margin: 20px 0;">✓ Tipos de comunicación y sincronización</p>
+                    <p style="font-size: 28px; margin: 20px 0;">✓ Ejemplos prácticos</p>
+                    
+                    <div style="margin: 60px 0; font-size: 48px; color: #764ba2;">⬇️</div>
+                    
+                    <h2 style="font-size: 48px; color: #764ba2;">Ahora veremos: Barreras</h2>
+                    <p style="font-size: 24px; margin-top: 20px; color: #4a5568;">Un mecanismo de sincronización para múltiples procesos</p>
+                </div>
+            </div>
+            <div class="slide-number">9 / 15</div>
+        </div>
+
+        <!-- PARTE 2: BARRERAS (PERSONA 3) -->
+        
+        <!-- Slide 10 -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Ergil Cardenas</div>
+            <div class="slide-header">
+                <div class="slide-title">Barreras</div>
+                <div class="slide-subtitle">Concepto y Propósito</div>
+            </div>
+            <div class="slide-content">
+                <h2>¿Qué es una Barrera?</h2>
+                <p>Una <span class="highlight">barrera</span> es un mecanismo de sincronización que fuerza a un grupo de procesos (o hilos) a esperar hasta que <strong>todos</strong> hayan alcanzado un punto específico antes de continuar.</p>
+
+                <div class="box">
+                    <h3>Características Principales:</h3>
+                    <ul>
+                        <li><strong>Sincronización de grupo:</strong> Todos los procesos deben llegar</li>
+                        <li><strong>Punto de encuentro:</strong> Define una fase en la ejecución</li>
+                        <li><strong>Liberación simultánea:</strong> Todos continúan juntos</li>
+                        <li><strong>Uso común:</strong> Computación paralela y aplicaciones científicas</li>
+                    </ul>
+                </div>
+
+                <h2>Analogía del Mundo Real</h2>
+                <div class="diagram">
+                    🚶 🚶 🚶 🚶  →  [🚧 BARRERA 🚧]  →  🏃 🏃 🏃 🏃
+                    <br>
+                    Todos esperan      Barrera         Todos continúan
+                    <br><br>
+                    "Como un grupo de turistas que espera a que<br>
+                    todos lleguen al bus antes de partir"
+                </div>
+
+                <div class="box" style="background: #fef3c7;">
+                    <p><strong>⚠️ Importante:</strong> Si un proceso no llega a la barrera, TODOS los demás quedan bloqueados indefinidamente.</p>
+                </div>
+            </div>
+            <div class="slide-number">10 / 15</div>
+        </div>
+
+        <!-- Slide 11 -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Ergil Cardenas</div>
+            <div class="slide-header">
+                <div class="slide-title">Funcionamiento de las Barreras</div>
+                <div class="slide-subtitle">Paso a Paso</div>
+            </div>
+            <div class="slide-content">
+                <h2>Proceso de Sincronización</h2>
+                
+                <div class="diagram" style="text-align: left; line-height: 2.5;">
+                    <strong>Fase 1: Llegada</strong><br>
+                    Proceso 1: ════════════╗<br>
+                    Proceso 2: ══════╗     ║<br>
+                    Proceso 3: ═══════════╬═══► [BARRERA]<br>
+                    Proceso 4: ═════════╝  ║<br>
+                    <br>
+                    <strong>Fase 2: Espera</strong><br>
+                    Todos esperan en la barrera: ⏸️ ⏸️ ⏸️ ⏸️<br>
+                    Contador: 1... 2... 3... 4 ✓<br>
+                    <br>
+                    <strong>Fase 3: Liberación</strong><br>
+                    ═══► Proceso 1 continúa<br>
+                    ═══► Proceso 2 continúa<br>
+                    ═══► Proceso 3 continúa<br>
+                    ═══► Proceso 4 continúa<br>
+                </div>
+
+                <h2>Primitiva Básica</h2>
+                <div class="code-block">barrier_wait(barrier_t *barrier);
+
+// Cuando un proceso llama a barrier_wait():
+// 1. Incrementa contador de llegadas
+// 2. Si no son todos: se bloquea
+// 3. Si son todos: despierta a todos</div>
+
+                <div class="box">
+                    <p><strong>Estado interno de la barrera:</strong></p>
+                    <ul>
+                        <li>Contador de procesos llegados</li>
+                        <li>Número total de procesos esperados</li>
+                        <li>Mecanismo de bloqueo/liberación</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-number">11 / 15</div>
+        </div>
+
+        <!-- Slide 12 -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Ergil Cardenas</div>
+            <div class="slide-header">
+                <div class="slide-title">Tipos de Barreras</div>
+                <div class="slide-subtitle">Diferentes Implementaciones</div>
+            </div>
+            <div class="slide-content">
+                <h2>1. Barrera Simple (One-time)</h2>
+                <div class="box">
+                    <p>Se usa una sola vez. Después de liberarse, no puede reutilizarse.</p>
+                    <p><strong>Uso:</strong> Sincronización única al inicio o fin de programa</p>
+                </div>
+
+                <h2>2. Barrera Reutilizable (Reusable)</h2>
+                <div class="box">
+                    <p>Puede usarse múltiples veces en ciclos. Se resetea automáticamente después de cada liberación.</p>
+                    <div class="code-block">for (int fase = 0; fase < N; fase++) {
+    // Trabajo de la fase
+    realizar_computo();
+    
+    // Sincronización al final de cada fase
+    barrier_wait(&barrera);
+    
+    // Todos continúan a la siguiente fase
+}</div>
+                    <p><strong>Uso:</strong> Algoritmos iterativos, simulaciones paralelas</p>
+                </div>
+
+                <h2>3. Barrera con Sentido (Sense-reversing)</h2>
+                <div class="box">
+                    <p>Usa una variable "sentido" que alterna para detectar nuevas rondas.</p>
+                    <p><strong>Ventaja:</strong> Evita condiciones de carrera en reutilizaciones</p>
+                </div>
+            </div>
+            <div class="slide-number">12 / 15</div>
+        </div>
+
+        <!-- PARTE 2: BARRERAS (PERSONA 4) -->
+        
+        <!-- Slide 13 -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Diego Contreras</div>
+            <div class="slide-header">
+                <div class="slide-title">Implementación de Barreras</div>
+                <div class="slide-subtitle">Conceptos y Lógica Básica</div>
+            </div>
+            <div class="slide-content">
+                <div class="box" style="background: #e0e7ff; border-left-color: #667eea;">
+                    <p><strong>📌 Nota importante:</strong> Para implementar barreras se necesitan <span class="highlight">mecanismos de sincronización básicos</span> como semáforos o mutex (temas vistos anteriormente en la exposición). Aquí veremos la lógica conceptual.</p>
+                </div>
+
+                <h2>Elementos de una Barrera</h2>
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <h4>📊 Variables Necesarias</h4>
+                        <ul>
+                            <li><strong>Contador:</strong> Procesos que llegaron</li>
+                            <li><strong>Total:</strong> Procesos esperados</li>
+                            <li><strong>Protección:</strong> Para el contador</li>
+                            <li><strong>Bloqueo:</strong> Para dormir procesos</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h4>⚙️ Operaciones</h4>
+                        <ul>
+                            <li><strong>Inicializar:</strong> Configurar total</li>
+                            <li><strong>Esperar:</strong> Llegar y sincronizar</li>
+                            <li><strong>Liberar:</strong> Despertar a todos</li>
+                            <li><strong>Reiniciar:</strong> Para reutilizar</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h2>Lógica de Funcionamiento</h2>
+                <div class="diagram" style="background: #f0fdf4; border-color: #10b981;">
+                    <strong>Cuando un proceso llega a la barrera:</strong><br><br>
+                    
+                    ┌─────────────────────────────────┐<br>
+                    │  1. Incrementar CONTADOR        │<br>
+                    │     (de forma protegida)        │<br>
+                    └─────────────┬───────────────────┘<br>
+                                  │<br>
+                                  ▼<br>
+                    ┌─────────────────────────────────┐<br>
+                    │  2. ¿Soy el ÚLTIMO en llegar?   │<br>
+                    └──────┬──────────────────┬───────┘<br>
+                           │                  │<br>
+                      NO   │                  │  SÍ<br>
+                           ▼                  ▼<br>
+                    ┌──────────────┐   ┌──────────────┐<br>
+                    │ 💤 DORMIR    │   │ 🔔 DESPERTAR │<br>
+                    │ (Esperar)    │   │ a TODOS      │<br>
+                    │              │   │ + Reiniciar  │<br>
+                    └──────────────┘   └──────────────┘<br>
+                </div>
+
+                <h2>Pseudocódigo Simple</h2>
+                <div class="code-block">procedure BARRIER_WAIT(barrera)
+    // Paso 1: Registrar mi llegada
+    INCREMENTAR barrera.contador
+    
+    // Paso 2: Decidir qué hacer
+    if (barrera.contador == barrera.total) then
+        // Soy el último
+        DESPERTAR_A_TODOS()
+        REINICIAR barrera.contador a 0
+    else
+        // No soy el último
+        DORMIR_HASTA_QUE_TODOS_LLEGUEN()
+    end if
+end procedure</div>
+
+                <div class="box" style="background: #fef3c7;">
+                    <p><strong>💡 Clave:</strong> La barrera es como un portero que cuenta cuántos han llegado. Cuando llega el último, abre la puerta para todos.</p>
+                </div>
+            </div>
+            <div class="slide-number">13 / 15</div>
+        </div>
+
+        <!-- Slide 14 -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Diego Contreras</div>
+            <div class="slide-header">
+                <div class="slide-title">Ejemplo Práctico y Visual</div>
+                <div class="slide-subtitle">Entendiendo las Barreras con un Caso Real</div>
+            </div>
+            <div class="slide-content">
+                <h2>Escenario: 4 Estudiantes Haciendo un Proyecto</h2>
+                <p>Cada estudiante tiene tareas que hacer en 3 fases. <strong>NO pueden avanzar a la siguiente fase hasta que TODOS terminen la actual.</strong></p>
+
+                <div class="diagram" style="text-align: left; font-size: 14px;">
+                    <strong>FASE 1: Investigación</strong><br>
+                    Derek:  ████████████ ✓ (termina a los 12 min) → 💤 ESPERA<br>
+                    Daniel: ███████ ✓ (termina a los 7 min) → 💤 ESPERA<br>
+                    Ergil:  ██████████████████ ✓ (termina a los 18 min) → 💤 ESPERA<br>
+                    Diego:  ████████████████████ ✓ (termina a los 20 min) → 🚀 ÚLTIMO<br>
+                    <span style="color: #667eea;">[BARRERA] → Cuando Diego termina, TODOS despiertan</span><br>
+                    <br>
+                    <strong>FASE 2: Escribir código</strong><br>
+                    Ahora TODOS comienzan juntos... y repiten el proceso<br>
+                </div>
+
+                <h2>Código del Ejemplo</h2>
+                <div class="code-block">barrier_t barrera;
+
+void estudiante(int id) {
+    barrier_init(&barrera, 4);  // 4 estudiantes
+    
+    // FASE 1: Investigar
+    printf("Estudiante %d: Investigando...\n", id);
+    investigar();  // Cada uno toma diferente tiempo
+    printf("Estudiante %d: Terminé de investigar\n", id);
+    
+    barrier_wait(&barrera);  // 🚧 ESPERAR A TODOS
+    
+    // FASE 2: Programar (NO llegan aquí hasta que todos terminen Fase 1)
+    printf("Estudiante %d: Programando...\n", id);
+    programar();
+    printf("Estudiante %d: Terminé de programar\n", id);
+    
+    barrier_wait(&barrera);  // 🚧 ESPERAR A TODOS
+    
+    // FASE 3: Documentar
+    printf("Estudiante %d: Documentando...\n", id);
+    documentar();
+}</div>
+
+                <div class="box">
+                    <h3>Salida del Programa:</h3>
+                    <div class="code-block" style="font-size: 14px;">Estudiante 1: Investigando...
+Estudiante 2: Investigando...
+Estudiante 3: Investigando...
+Estudiante 4: Investigando...
+Estudiante 2: Terminé de investigar
+Estudiante 1: Terminé de investigar
+Estudiante 3: Terminé de investigar
+Estudiante 4: Terminé de investigar
+<span style="color: #10b981;">[Todos esperan en la barrera...]</span>
+<span style="color: #10b981;">[Cuando el último llega, todos continúan]</span>
+Estudiante 1: Programando...
+Estudiante 2: Programando...
+Estudiante 3: Programando...
+Estudiante 4: Programando...</div>
+                </div>
+
+                <div class="box" style="background: #fef3c7; margin-top: 20px;">
+                    <p><strong>💡 Idea clave:</strong> La barrera asegura que nadie se adelante. Es como un punto de control donde todos deben reunirse antes de continuar.</p>
+                </div>
+            </div>
+            <div class="slide-number">14 / 15</div>
+        </div>
+
+        <!-- Slide 15 -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Diego Contreras</div>
+            <div class="slide-header">
+                <div class="slide-title">Comparación con Otros Mecanismos</div>
+                <div class="slide-subtitle">¿Cuándo usar Barreras?</div>
+            </div>
+            <div class="slide-content">
+                <h2>Barreras vs Otros Mecanismos de IPC</h2>
+                
+                <table>
+                    <tr>
+                        <th>Mecanismo</th>
+                        <th>Propósito</th>
+                        <th>Procesos</th>
+                        <th>Uso Típico</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Semáforos</strong></td>
+                        <td>Exclusión mutua, sincronización</td>
+                        <td>1 o 2 procesos</td>
+                        <td>Proteger recursos compartidos</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Mutexes</strong></td>
+                        <td>Exclusión mutua</td>
+                        <td>1 proceso a la vez</td>
+                        <td>Secciones críticas</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pasaje de Mensajes</strong></td>
+                        <td>Comunicación</td>
+                        <td>2 procesos (típico)</td>
+                        <td>Transferir datos</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Barreras</strong></td>
+                        <td>Sincronización de grupo</td>
+                        <td>N procesos</td>
+                        <td>Fases paralelas</td>
+                    </tr>
+                </table>
+
+                <h2>Ventajas de las Barreras</h2>
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <h4>✅ Ventajas</h4>
+                        <ul>
+                            <li>Simple de usar y entender</li>
+                            <li>Ideal para algoritmos por fases</li>
+                            <li>Sincronización clara de múltiples procesos</li>
+                            <li>Garantiza consistencia de datos</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h4>⚠️ Limitaciones</h4>
+                        <ul>
+                            <li>Todos deben llegar (punto de fallo)</li>
+                            <li>Puede crear cuellos de botella</li>
+                            <li>No apto para comunicación asincrónica</li>
+                            <li>Overhead en sincronización</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h2>Casos de Uso Ideales</h2>
+                <div class="box">
+                    <ul>
+                        <li><strong>Simulaciones científicas:</strong> Iteraciones que requieren datos de todos los nodos</li>
+                        <li><strong>Procesamiento paralelo:</strong> MapReduce, algoritmos de matriz</li>
+                        <li><strong>Renderizado 3D:</strong> Cada frame debe completarse antes del siguiente</li>
+                        <li><strong>Machine Learning:</strong> Sincronización de gradientes entre workers</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-number">15 / 15</div>
+        </div>
+
+        <!-- Slide 16: Conclusión -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Conclusiones</div>
+                <div class="slide-subtitle">Resumen de Conceptos Clave</div>
+            </div>
+            <div class="slide-content">
+                <h2>Pasaje de Mensajes</h2>
+                <div class="box">
+                    <ul>
+                        <li>✓ Mecanismo sin memoria compartida</li>
+                        <li>✓ Comunicación directa e indirecta</li>
+                        <li>✓ Sincronización bloqueante/no bloqueante</li>
+                        <li>✓ Ideal para sistemas distribuidos</li>
+                    </ul>
+                </div>
+
+                <h2>Barreras</h2>
+                <div class="box">
+                    <ul>
+                        <li>✓ Sincronización de grupos de procesos</li>
+                        <li>✓ Todos esperan hasta que todos lleguen</li>
+                        <li>✓ Perfectas para algoritmos por fases</li>
+                        <li>✓ Usadas en computación paralela</li>
+                    </ul>
+                </div>
+
+                <h2>Relación entre Ambos</h2>
+                <p style="font-size: 22px; margin-top: 20px;">Tanto el <span class="highlight">pasaje de mensajes</span> como las <span class="highlight">barreras</span> son herramientas complementarias en IPC:</p>
+                <div class="diagram">
+                    <strong>Pasaje de Mensajes</strong> → Comunicación y transferencia de datos
+                    <br>
+                    <strong>Barreras</strong> → Sincronización y coordinación de fases
+                    <br><br>
+                    Juntos permiten construir sistemas paralelos robustos y eficientes
+                </div>
+
+                <div class="box" style="background: #d1fae5; border-left-color: #10b981; margin-top: 30px;">
+                    <h3 style="color: #10b981;">💡 Mensaje Final</h3>
+                    <p>La elección del mecanismo depende del problema: usa pasaje de mensajes para comunicación y barreras para sincronización de grupo.</p>
+                </div>
+            </div>
+            <div class="slide-number">16 / 15</div>
+        </div>
+
+        <!-- Slide 17: Referencias -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title">Referencias y Recursos</div>
+            </div>
+            <div class="slide-content">
+                <h2>Bibliografía Recomendada</h2>
+                <div class="box">
+                    <ul>
+                        <li><strong>Tanenbaum, A. S.</strong> - "Modern Operating Systems" (Capítulo 2: Procesos e Hilos)</li>
+                        <li><strong>Silberschatz, Galvin, Gagne</strong> - "Operating System Concepts" (Capítulo 3: Procesos)</li>
+                        <li><strong>Stevens, W. R.</strong> - "UNIX Network Programming" (IPC)</li>
+                    </ul>
+                </div>
+
+                <h2>APIs y Librerías</h2>
+                <div class="box">
+                    <ul>
+                        <li><strong>POSIX Threads (pthreads):</strong> pthread_barrier_wait()</li>
+                        <li><strong>MPI (Message Passing Interface):</strong> MPI_Send(), MPI_Recv(), MPI_Barrier()</li>
+                        <li><strong>OpenMP:</strong> #pragma omp barrier</li>
+                    </ul>
+                </div>
+
+                <h2>Recursos Online</h2>
+                <div class="box">
+                    <ul>
+                        <li>Linux Man Pages: man 3 pthread_barrier</li>
+                        <li>MPI Tutorial: https://mpitutorial.com</li>
+                        <li>Operating Systems: Three Easy Pieces (libro gratuito)</li>
+                    </ul>
+                </div>
+
+                <div style="text-align: center; margin-top: 50px; font-size: 36px; color: #667eea;">
+                    <strong>¡Gracias por su atención!</strong>
+                    <br>
+                    <span style="font-size: 24px; color: #4a5568;">¿Preguntas?</span>
+                </div>
+            </div>
+            <div class="slide-number">17 / 15</div>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                showSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        // Agregar botones de navegación a cada slide
+        slides.forEach((slide, index) => {
+            const nav = document.createElement('div');
+            nav.className = 'navigation';
+            
+            const prevBtn = document.createElement('button');
+            prevBtn.className = 'nav-btn';
+            prevBtn.textContent = '← Anterior';
+            prevBtn.onclick = prevSlide;
+            prevBtn.disabled = index === 0;
+            
+            const nextBtn = document.createElement('button');
+            nextBtn.className = 'nav-btn';
+            nextBtn.textContent = index === totalSlides - 1 ? 'Fin' : 'Siguiente →';
+            nextBtn.onclick = nextSlide;
+            nextBtn.disabled = index === totalSlides - 1;
+            
+            if (index > 0) nav.appendChild(prevBtn);
+            if (index < totalSlides - 1) nav.appendChild(nextBtn);
+            
+            slide.appendChild(nav);
+        });
+
+        // Navegación con teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // Actualizar números de slide
+        function updateSlideNumbers() {
+            slides.forEach((slide, index) => {
+                const slideNumber = slide.querySelector('.slide-number');
+                if (slideNumber) {
+                    slideNumber.textContent = `${index + 1} / ${totalSlides}`;
+                }
+            });
+        }
+
+        updateSlideNumbers();
+    </script>
+</body>
+</html>
