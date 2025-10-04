@@ -290,7 +290,7 @@
                     <p>Ergil Cardenas | Diego Contreras</p>
                 </div>
             </div>
-            <div class="slide-number">1 / 15</div>
+            <div class="slide-number">1 / 19</div>
         </div>
 
         <!-- Slide 2: Índice -->
@@ -301,15 +301,15 @@
             <div class="slide-content">
                 <h2>Contenido de la Presentación</h2>
                 <div style="font-size: 24px; line-height: 2.5;">
-                    <p><strong>Parte 1: Pasaje de Mensajes (Persona 1 y 2)</strong></p>
+                    <p><strong>Parte 1: Pasaje de Mensajes (Derek y Daniel)</strong></p>
                     <ul>
                         <li>Introducción y conceptos fundamentales</li>
                         <li>Tipos de comunicación (directa/indirecta)</li>
                         <li>Sincronización: Bloqueante vs No bloqueante</li>
-                        <li>Ejemplos prácticos y código</li>
+                        <li>Buffering y ejemplos prácticos</li>
                     </ul>
                     <br>
-                    <p><strong>Parte 2: Barreras (Persona 3 y 4)</strong></p>
+                    <p><strong>Parte 2: Barreras (Ergil y Diego)</strong></p>
                     <ul>
                         <li>Concepto y propósito de las barreras</li>
                         <li>Funcionamiento y tipos</li>
@@ -318,42 +318,42 @@
                     </ul>
                 </div>
             </div>
-            <div class="slide-number">2 / 15</div>
+            <div class="slide-number">2 / 19</div>
         </div>
 
-        <!-- PARTE 1: PASAJE DE MENSAJES (PERSONA 1) -->
+        <!-- PARTE 1: PASAJE DE MENSAJES (DEREK - 4 SLIDES) -->
         
-        <!-- Slide 3 -->
+        <!-- Slide 3 - Derek -->
         <div class="slide">
             <div class="presenter-tag">👤 Derek Marmol</div>
             <div class="slide-header">
                 <div class="slide-title">Pasaje de Mensajes</div>
-                <div class="slide-subtitle">Introducción y Conceptos Fundamentales</div>
+                <div class="slide-subtitle">Introducción y Primitivas Básicas</div>
             </div>
             <div class="slide-content">
                 <h2>¿Qué es el Pasaje de Mensajes?</h2>
-                <p>El <span class="highlight">pasaje de mensajes</span> es un mecanismo de comunicación entre procesos (IPC) que permite el intercambio de información sin necesidad de memoria compartida.</p>
+                <p>El <span class="highlight">pasaje de mensajes</span> es un método de comunicación entre procesos que utiliza dos primitivas que son <strong>llamadas al sistema</strong> (no construcciones del lenguaje como los monitores).</p>
                 
                 <div class="box">
                     <h3>Características Principales:</h3>
                     <ul>
-                        <li><strong>No requiere memoria compartida:</strong> Ideal para sistemas distribuidos</li>
-                        <li><strong>Comunicación explícita:</strong> Los procesos envían y reciben mensajes mediante primitivas</li>
-                        <li><strong>Sincronización implícita:</strong> El mecanismo puede incluir sincronización</li>
-                        <li><strong>Escalabilidad:</strong> Funciona bien en múltiples computadoras</li>
+                        <li><strong>No requiere memoria compartida:</strong> Ideal para procesos en distintas máquinas conectadas por red</li>
+                        <li><strong>Llamadas al sistema:</strong> send y receive son primitivas del SO</li>
+                        <li><strong>Pueden colocarse en procedimientos de biblioteca</strong> para facilitar su uso</li>
+                        <li><strong>Comportamiento del receive:</strong> Si no hay mensaje disponible, el receptor puede bloquearse o regresar con código de error</li>
                     </ul>
                 </div>
 
                 <h2>Primitivas Básicas</h2>
-                <div class="code-block">send(destino, &mensaje);    // Enviar mensaje
-receive(origen, &mensaje);   // Recibir mensaje</div>
+                <div class="code-block">send(destino, &mensaje);    // Enviar mensaje a destino
+receive(origen, &mensaje);   // Recibir mensaje de origen o CUALQUIERA</div>
 
-                <p><strong>Ventaja principal:</strong> Evita problemas de condiciones de carrera al no compartir memoria directamente.</p>
+                <p><strong>Nota importante:</strong> El parámetro "origen" en receive puede ser un proceso específico o la constante CUALQUIERA si al receptor no le importa de quién viene el mensaje.</p>
             </div>
-            <div class="slide-number">3 / 15</div>
+            <div class="slide-number">3 / 19</div>
         </div>
 
-        <!-- Slide 4 -->
+        <!-- Slide 4 - Derek -->
         <div class="slide">
             <div class="presenter-tag">👤 Derek Marmol</div>
             <div class="slide-header">
@@ -395,10 +395,10 @@ receive(MailboxA, &mensaje); // Recibir del buzón A</div>
                     </ul>
                 </div>
             </div>
-            <div class="slide-number">4 / 15</div>
+            <div class="slide-number">4 / 19</div>
         </div>
 
-        <!-- Slide 5 -->
+        <!-- Slide 5 - Derek -->
         <div class="slide">
             <div class="presenter-tag">👤 Derek Marmol</div>
             <div class="slide-header">
@@ -428,12 +428,63 @@ receive(MailboxA, &mensaje); // Recibir del buzón A</div>
                     <p><strong>Indirecta:</strong> Es como enviar un correo a una casilla postal que varias personas pueden revisar.</p>
                 </div>
             </div>
-            <div class="slide-number">5 / 15</div>
+            <div class="slide-number">5 / 19</div>
         </div>
 
-        <!-- PARTE 1: PASAJE DE MENSAJES (PERSONA 2) -->
+        <!-- Slide 6 - Derek NUEVA -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Derek Marmol</div>
+            <div class="slide-header">
+                <div class="slide-title">Ventajas y Desventajas del Pasaje de Mensajes</div>
+                <div class="slide-subtitle">Análisis Comparativo</div>
+            </div>
+            <div class="slide-content">
+                <h2>Ventajas del Pasaje de Mensajes</h2>
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <h4>✅ Portabilidad</h4>
+                        <p>Funciona en sistemas distribuidos sin memoria compartida. Ideal para comunicación en red entre diferentes máquinas.</p>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h4>✅ Simplicidad Conceptual</h4>
+                        <p>Más fácil de razonar que memoria compartida. No hay condiciones de carrera directas sobre datos compartidos.</p>
+                    </div>
+                </div>
+
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <h4>✅ Modularidad</h4>
+                        <p>Los procesos están naturalmente desacoplados. Cambiar un proceso no afecta directamente a otros.</p>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h4>✅ Seguridad</h4>
+                        <p>Cada proceso tiene su propio espacio de direcciones protegido. Menor riesgo de corrupción de memoria.</p>
+                    </div>
+                </div>
+
+                <h2>Desventajas del Pasaje de Mensajes</h2>
+                <div class="box" style="background: #fee;">
+                    <ul>
+                        <li><strong>Overhead de comunicación:</strong> Copiar mensajes entre espacios de direcciones tiene costo en tiempo y memoria</li>
+                        <li><strong>Complejidad de sincronización:</strong> Gestionar el orden y timing de mensajes puede ser complicado</li>
+                        <li><strong>Latencia:</strong> Especialmente en sistemas distribuidos, el envío de mensajes puede ser lento</li>
+                        <li><strong>Gestión de buzones:</strong> Requiere administrar colas, manejar buzones llenos, y prevenir deadlocks</li>
+                    </ul>
+                </div>
+
+                <div class="box">
+                    <h3>¿Cuándo usar Pasaje de Mensajes?</h3>
+                    <p><strong>Ideal para:</strong> Sistemas distribuidos, arquitecturas de microservicios, cuando los procesos están en diferentes máquinas, o cuando se necesita alta modularidad y desacoplamiento.</p>
+                </div>
+            </div>
+            <div class="slide-number">6 / 19</div>
+        </div>
+
+        <!-- PARTE 1: PASAJE DE MENSAJES (DANIEL - 4 SLIDES) -->
         
-        <!-- Slide 6 -->
+        <!-- Slide 7 - Daniel -->
         <div class="slide">
             <div class="presenter-tag">👤 Daniel Ortiz</div>
             <div class="slide-header">
@@ -487,10 +538,10 @@ receive(MailboxA, &mensaje); // Recibir del buzón A</div>
                     </tr>
                 </table>
             </div>
-            <div class="slide-number">6 / 15</div>
+            <div class="slide-number">7 / 19</div>
         </div>
 
-        <!-- Slide 7 -->
+        <!-- Slide 8 - Daniel -->
         <div class="slide">
             <div class="presenter-tag">👤 Daniel Ortiz</div>
             <div class="slide-header">
@@ -528,10 +579,10 @@ if (buffer_full()) {
                     (Los mensajes esperan si el receptor está ocupado)
                 </div>
             </div>
-            <div class="slide-number">7 / 15</div>
+            <div class="slide-number">8 / 19</div>
         </div>
 
-        <!-- Slide 8 -->
+        <!-- Slide 9 - Daniel -->
         <div class="slide">
             <div class="presenter-tag">👤 Daniel Ortiz</div>
             <div class="slide-header">
@@ -581,10 +632,82 @@ void consumer(void) {
                     </ul>
                 </div>
             </div>
-            <div class="slide-number">8 / 15</div>
+            <div class="slide-number">9 / 19</div>
         </div>
 
-        <!-- Slide 9: Transición -->
+        <!-- Slide 10 - Daniel NUEVA -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Daniel Ortiz</div>
+            <div class="slide-header">
+                <div class="slide-title">Problemas Comunes y Soluciones</div>
+                <div class="slide-subtitle">Deadlocks y Gestión de Errores</div>
+            </div>
+            <div class="slide-content">
+                <h2>Problema 1: Deadlock en Pasaje de Mensajes</h2>
+                <div class="box" style="background: #fee;">
+                    <h3>Escenario de Deadlock:</h3>
+                    <div class="code-block">// Proceso A
+send(B, msg1);
+receive(B, &msg2);
+
+// Proceso B
+send(A, msg1);
+receive(A, &msg2);</div>
+                    <p><strong>Problema:</strong> Ambos intentan enviar primero con send bloqueante. Ambos se bloquean esperando que el otro reciba.</p>
+                </div>
+
+                <div class="box" style="background: #d1fae5;">
+                    <h3>Solución: Ordenamiento o Asincronía</h3>
+                    <div class="code-block">// Solución 1: Orden establecido
+// Proceso A (siempre envía primero)
+send(B, msg1);
+receive(B, &msg2);
+
+// Proceso B (siempre recibe primero)
+receive(A, &msg2);
+send(A, msg1);
+
+// Solución 2: Send no bloqueante
+send_nonblock(B, msg1);
+receive(B, &msg2);</div>
+                </div>
+
+                <h2>Problema 2: Mensajes Perdidos</h2>
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <h4>⚠️ Causas</h4>
+                        <ul>
+                            <li>Buffer lleno y sin manejo</li>
+                            <li>Proceso receptor termina antes de recibir</li>
+                            <li>Errores de red en sistemas distribuidos</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h4>✅ Soluciones</h4>
+                        <ul>
+                            <li>Implementar ACKs (acknowledgments)</li>
+                            <li>Timeout y reenvío</li>
+                            <li>Números de secuencia</li>
+                            <li>Manejo explícito de errores</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h2>Buenas Prácticas</h2>
+                <div class="box">
+                    <ul>
+                        <li>Siempre verificar el retorno de receive() para detectar errores</li>
+                        <li>Usar timeouts para evitar bloqueos indefinidos</li>
+                        <li>Documentar el protocolo de comunicación claramente</li>
+                        <li>Considerar el orden de operaciones send/receive cuidadosamente</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="slide-number">10 / 19</div>
+        </div>
+
+        <!-- Slide 11: Transición -->
         <div class="slide">
             <div class="slide-header">
                 <div class="slide-title">Transición</div>
@@ -595,7 +718,8 @@ void consumer(void) {
                     <h2 style="font-size: 48px; color: #667eea; margin-bottom: 40px;">Hemos visto: Pasaje de Mensajes</h2>
                     <p style="font-size: 28px; margin: 20px 0;">✓ Comunicación entre procesos sin memoria compartida</p>
                     <p style="font-size: 28px; margin: 20px 0;">✓ Tipos de comunicación y sincronización</p>
-                    <p style="font-size: 28px; margin: 20px 0;">✓ Ejemplos prácticos</p>
+                    <p style="font-size: 28px; margin: 20px 0;">✓ Buffering y ejemplos prácticos</p>
+                    <p style="font-size: 28px; margin: 20px 0;">✓ Problemas comunes y soluciones</p>
                     
                     <div style="margin: 60px 0; font-size: 48px; color: #764ba2;">⬇️</div>
                     
@@ -603,12 +727,12 @@ void consumer(void) {
                     <p style="font-size: 24px; margin-top: 20px; color: #4a5568;">Un mecanismo de sincronización para múltiples procesos</p>
                 </div>
             </div>
-            <div class="slide-number">9 / 15</div>
+            <div class="slide-number">11 / 19</div>
         </div>
 
-        <!-- PARTE 2: BARRERAS (PERSONA 3) -->
+        <!-- PARTE 2: BARRERAS (ERGIL - 4 SLIDES) -->
         
-        <!-- Slide 10 -->
+        <!-- Slide 12 - Ergil -->
         <div class="slide">
             <div class="presenter-tag">👤 Ergil Cardenas</div>
             <div class="slide-header">
@@ -643,10 +767,10 @@ void consumer(void) {
                     <p><strong>⚠️ Importante:</strong> Si un proceso no llega a la barrera, TODOS los demás quedan bloqueados indefinidamente.</p>
                 </div>
             </div>
-            <div class="slide-number">10 / 15</div>
+            <div class="slide-number">12 / 19</div>
         </div>
 
-        <!-- Slide 11 -->
+        <!-- Slide 13 - Ergil -->
         <div class="slide">
             <div class="presenter-tag">👤 Ergil Cardenas</div>
             <div class="slide-header">
@@ -691,10 +815,10 @@ void consumer(void) {
                     </ul>
                 </div>
             </div>
-            <div class="slide-number">11 / 15</div>
+            <div class="slide-number">13 / 19</div>
         </div>
 
-        <!-- Slide 12 -->
+        <!-- Slide 14 - Ergil -->
         <div class="slide">
             <div class="presenter-tag">👤 Ergil Cardenas</div>
             <div class="slide-header">
@@ -729,12 +853,67 @@ void consumer(void) {
                     <p><strong>Ventaja:</strong> Evita condiciones de carrera en reutilizaciones</p>
                 </div>
             </div>
-            <div class="slide-number">12 / 15</div>
+            <div class="slide-number">14 / 19</div>
         </div>
 
-        <!-- PARTE 2: BARRERAS (PERSONA 4) -->
+        <!-- Slide 15 - Ergil NUEVA -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Ergil Cardenas</div>
+            <div class="slide-header">
+                <div class="slide-title">Aplicaciones Reales de Barreras</div>
+                <div class="slide-subtitle">Casos de Uso en la Industria</div>
+            </div>
+            <div class="slide-content">
+                <h2>1. Simulaciones Científicas</h2>
+                <div class="box">
+                    <h3>Dinámica de Fluidos Computacional (CFD)</h3>
+                    <p>Cada nodo de cómputo calcula el flujo de fluido en su región. Al final de cada paso de tiempo, todos deben sincronizarse antes de actualizar las condiciones de frontera.</p>
+                    <div class="code-block" style="font-size: 14px;">for (int tiempo = 0; tiempo < pasos_simulacion; tiempo++) {
+    calcular_flujo_local();
+    barrier_wait(&barrera);  // Esperar a todos
+    intercambiar_datos_frontera();
+    barrier_wait(&barrera);  // Sincronizar antes del siguiente paso
+}</div>
+                </div>
+
+                <h2>2. Procesamiento de Imágenes Paralelo</h2>
+                <div class="box">
+                    <h3>Renderizado 3D y Filtros</h3>
+                    <p>Cada hilo procesa una sección de la imagen. Antes de aplicar el siguiente filtro, todos deben terminar su sección.</p>
+                    <div class="code-block" style="font-size: 14px;">void procesar_imagen(int thread_id) {
+    aplicar_filtro_blur(mi_seccion);
+    barrier_wait(&barrera);  // Todos terminan blur
+    
+    aplicar_filtro_sharpening(mi_seccion);
+    barrier_wait(&barrera);  // Todos terminan sharpening
+    
+    ajustar_color(mi_seccion);
+}</div>
+                </div>
+
+                <h2>3. Machine Learning Distribuido</h2>
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <h4>Entrenamiento Paralelo</h4>
+                        <p>Múltiples workers calculan gradientes en diferentes lotes de datos. Deben sincronizarse para actualizar el modelo global.</p>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h4>MapReduce</h4>
+                        <p>Fase Map: procesar datos en paralelo. Barrera. Fase Reduce: combinar resultados.</p>
+                    </div>
+                </div>
+
+                <div class="box" style="background: #d1fae5;">
+                    <p><strong>💡 Patrón común:</strong> Todas estas aplicaciones comparten el patrón de trabajo paralelo seguido de sincronización antes de la siguiente fase.</p>
+                </div>
+            </div>
+            <div class="slide-number">15 / 19</div>
+        </div>
+
+        <!-- PARTE 2: BARRERAS (DIEGO - 4 SLIDES) -->
         
-        <!-- Slide 13 -->
+        <!-- Slide 16 - Diego -->
         <div class="slide">
             <div class="presenter-tag">👤 Diego Contreras</div>
             <div class="slide-header">
@@ -812,10 +991,10 @@ end procedure</div>
                     <p><strong>💡 Clave:</strong> La barrera es como un portero que cuenta cuántos han llegado. Cuando llega el último, abre la puerta para todos.</p>
                 </div>
             </div>
-            <div class="slide-number">13 / 15</div>
+            <div class="slide-number">16 / 19</div>
         </div>
 
-        <!-- Slide 14 -->
+        <!-- Slide 17 - Diego -->
         <div class="slide">
             <div class="presenter-tag">👤 Diego Contreras</div>
             <div class="slide-header">
@@ -885,10 +1064,10 @@ Estudiante 4: Programando...</div>
                     <p><strong>💡 Idea clave:</strong> La barrera asegura que nadie se adelante. Es como un punto de control donde todos deben reunirse antes de continuar.</p>
                 </div>
             </div>
-            <div class="slide-number">14 / 15</div>
+            <div class="slide-number">17 / 19</div>
         </div>
 
-        <!-- Slide 15 -->
+        <!-- Slide 18 - Diego -->
         <div class="slide">
             <div class="presenter-tag">👤 Diego Contreras</div>
             <div class="slide-header">
@@ -964,10 +1143,81 @@ Estudiante 4: Programando...</div>
                     </ul>
                 </div>
             </div>
-            <div class="slide-number">15 / 15</div>
+            <div class="slide-number">18 / 19</div>
         </div>
 
-        <!-- Slide 16: Conclusión -->
+        <!-- Slide 19 - Diego NUEVA -->
+        <div class="slide">
+            <div class="presenter-tag">👤 Diego Contreras</div>
+            <div class="slide-header">
+                <div class="slide-title">Optimizaciones y Consideraciones Avanzadas</div>
+                <div class="slide-subtitle">Mejorando el Rendimiento de Barreras</div>
+            </div>
+            <div class="slide-content">
+                <h2>Problema: Barreras Centralizadas</h2>
+                <div class="box" style="background: #fee;">
+                    <p><strong>Cuello de botella:</strong> Todos los procesos compiten por actualizar el mismo contador. En sistemas con muchos procesos, esto causa contención.</p>
+                    <div class="diagram" style="background: white;">
+                        P1 → ┐<br>
+                        P2 → ├──► [CONTADOR] ← Contención aquí<br>
+                        P3 → ├──► (Todos acceden al mismo recurso)<br>
+                        P4 → ┘<br>
+                    </div>
+                </div>
+
+                <h2>Solución 1: Barreras Jerárquicas (Tree Barrier)</h2>
+                <div class="box" style="background: #d1fae5;">
+                    <p>Organizan los procesos en árbol. Cada nivel sincroniza antes de pasar al siguiente.</p>
+                    <div class="diagram" style="background: white; font-size: 14px;">
+                        Nivel 0:    P1  P2  P3  P4  P5  P6  P7  P8<br>
+                                    └┬┘ └┬┘ └┬┘ └┬┘<br>
+                        Nivel 1:     B1  B2  B3  B4<br>
+                                     └──┬──┘ └──┬──┘<br>
+                        Nivel 2:        B5      B6<br>
+                                        └───┬───┘<br>
+                        Root:               BR<br>
+                    </div>
+                    <p><strong>Ventaja:</strong> Reduce contención de O(N) a O(log N)</p>
+                </div>
+
+                <h2>Solución 2: Butterfly Barrier</h2>
+                <div class="box">
+                    <p>Cada proceso se sincroniza con un subconjunto de procesos en cada fase, creando un patrón tipo mariposa.</p>
+                    <p><strong>Ventaja:</strong> Mejor balance de carga y escalabilidad</p>
+                </div>
+
+                <h2>Consideraciones de Rendimiento</h2>
+                <table style="font-size: 16px;">
+                    <tr>
+                        <th>Factor</th>
+                        <th>Impacto</th>
+                        <th>Recomendación</th>
+                    </tr>
+                    <tr>
+                        <td>Número de procesos</td>
+                        <td>Más procesos = más contención</td>
+                        <td>Usar barreras jerárquicas para N > 64</td>
+                    </tr>
+                    <tr>
+                        <td>Variabilidad de trabajo</td>
+                        <td>Desbalance causa esperas largas</td>
+                        <td>Balancear carga entre procesos</td>
+                    </tr>
+                    <tr>
+                        <td>Frecuencia de barreras</td>
+                        <td>Barreras frecuentes = overhead</td>
+                        <td>Agrupar trabajo entre barreras</td>
+                    </tr>
+                </table>
+
+                <div class="box" style="background: #fef3c7; margin-top: 15px;">
+                    <p><strong>💡 Regla de oro:</strong> Las barreras son herramientas poderosas pero costosas. Úsalas solo cuando realmente necesites sincronización global de todos los procesos.</p>
+                </div>
+            </div>
+            <div class="slide-number">19 / 19</div>
+        </div>
+
+        <!-- Slide 20: Conclusión -->
         <div class="slide">
             <div class="slide-header">
                 <div class="slide-title">Conclusiones</div>
@@ -981,6 +1231,7 @@ Estudiante 4: Programando...</div>
                         <li>✓ Comunicación directa e indirecta</li>
                         <li>✓ Sincronización bloqueante/no bloqueante</li>
                         <li>✓ Ideal para sistemas distribuidos</li>
+                        <li>✓ Requiere manejo cuidadoso de deadlocks</li>
                     </ul>
                 </div>
 
@@ -991,6 +1242,7 @@ Estudiante 4: Programando...</div>
                         <li>✓ Todos esperan hasta que todos lleguen</li>
                         <li>✓ Perfectas para algoritmos por fases</li>
                         <li>✓ Usadas en computación paralela</li>
+                        <li>✓ Optimizaciones para sistemas grandes</li>
                     </ul>
                 </div>
 
@@ -1006,13 +1258,13 @@ Estudiante 4: Programando...</div>
 
                 <div class="box" style="background: #d1fae5; border-left-color: #10b981; margin-top: 30px;">
                     <h3 style="color: #10b981;">💡 Mensaje Final</h3>
-                    <p>La elección del mecanismo depende del problema: usa pasaje de mensajes para comunicación y barreras para sincronización de grupo.</p>
+                    <p>La elección del mecanismo depende del problema: usa pasaje de mensajes para comunicación y barreras para sincronización de grupo. Conocer las fortalezas y limitaciones de cada uno te permite diseñar sistemas concurrentes eficientes y confiables.</p>
                 </div>
             </div>
-            <div class="slide-number">16 / 15</div>
+            <div class="slide-number">20 / 19</div>
         </div>
 
-        <!-- Slide 17: Referencias -->
+        <!-- Slide 21: Referencias -->
         <div class="slide">
             <div class="slide-header">
                 <div class="slide-title">Referencias y Recursos</div>
@@ -1024,15 +1276,17 @@ Estudiante 4: Programando...</div>
                         <li><strong>Tanenbaum, A. S.</strong> - "Modern Operating Systems" (Capítulo 2: Procesos e Hilos)</li>
                         <li><strong>Silberschatz, Galvin, Gagne</strong> - "Operating System Concepts" (Capítulo 3: Procesos)</li>
                         <li><strong>Stevens, W. R.</strong> - "UNIX Network Programming" (IPC)</li>
+                        <li><strong>Andrews, G. R.</strong> - "Foundations of Multithreaded, Parallel, and Distributed Programming"</li>
                     </ul>
                 </div>
 
                 <h2>APIs y Librerías</h2>
                 <div class="box">
                     <ul>
-                        <li><strong>POSIX Threads (pthreads):</strong> pthread_barrier_wait()</li>
+                        <li><strong>POSIX Threads (pthreads):</strong> pthread_barrier_wait(), pthread_barrier_init()</li>
                         <li><strong>MPI (Message Passing Interface):</strong> MPI_Send(), MPI_Recv(), MPI_Barrier()</li>
                         <li><strong>OpenMP:</strong> #pragma omp barrier</li>
+                        <li><strong>Java:</strong> CyclicBarrier, Phaser</li>
                     </ul>
                 </div>
 
@@ -1042,6 +1296,7 @@ Estudiante 4: Programando...</div>
                         <li>Linux Man Pages: man 3 pthread_barrier</li>
                         <li>MPI Tutorial: https://mpitutorial.com</li>
                         <li>Operating Systems: Three Easy Pieces (libro gratuito)</li>
+                        <li>Parallel Programming Patterns: patterns.eecs.berkeley.edu</li>
                     </ul>
                 </div>
 
@@ -1051,7 +1306,7 @@ Estudiante 4: Programando...</div>
                     <span style="font-size: 24px; color: #4a5568;">¿Preguntas?</span>
                 </div>
             </div>
-            <div class="slide-number">17 / 15</div>
+            <div class="slide-number">21 / 19</div>
         </div>
     </div>
 
@@ -1123,4 +1378,3 @@ Estudiante 4: Programando...</div>
         updateSlideNumbers();
     </script>
 </body>
-</html>
